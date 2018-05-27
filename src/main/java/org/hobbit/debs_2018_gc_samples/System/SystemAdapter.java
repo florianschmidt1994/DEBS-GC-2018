@@ -33,12 +33,10 @@ public class SystemAdapter extends AbstractSystemAdapter {
     public void init() throws Exception {
         super.init();
 
-        logger.debug("Init finished");
+        logger.debug("INIT from a very fresh start with a very different approach!");
 
         // Your initialization code comes here...
         parameters = new JenaKeyValue.Builder().buildFrom(systemParamModel);
-
-
 
         if(parameters.containsKey(HOBBIT_SYSTEM_CONTAINER_ID_KEY))
             systemContainerId = Integer.parseInt(parameters.getStringValueFor(HOBBIT_SYSTEM_CONTAINER_ID_KEY));
@@ -54,10 +52,8 @@ public class SystemAdapter extends AbstractSystemAdapter {
 
         logger.debug("SystemModel: "+parameters.encodeToString());
 
-
         timer = new Timer();
-
-
+        logger.info("Finished initializing!");
     }
 
     private void startTimer(){

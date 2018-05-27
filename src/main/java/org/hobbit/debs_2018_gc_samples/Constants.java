@@ -7,11 +7,8 @@ import java.text.SimpleDateFormat;
 public class Constants {
     public static String ENCRYPTION_KEY_NAME = "ENCRYPTION_KEY";
 
-    public static final String GIT_REPO_PATH = "git.project-hobbit.eu:4567/smirnp/";
-
-    //public static final String GIT_REPO_PATH = "";
-    public static final String PROJECT_NAME = "sml-benchmark-v2";
-
+    public static final String GIT_REPO_PATH = "git.project-hobbit.eu:4567/florian.schmidt.1994";
+    public static final String PROJECT_NAME = "debs2018solution";
 
     public static final Charset CHARSET = Charset.forName("UTF-8");
 
@@ -25,6 +22,5 @@ public class Constants {
     public static final String GENERATOR_LIMIT = BENCHMARK_URI+"tuplesLimit";
     public static final String GENERATOR_TIMEOUT = BENCHMARK_URI+"benchmarkTimeoutMin";
     public static final String QUERY_TYPE_KEY = BENCHMARK_URI+"queryType";
-
 
 }

@@ -1,20 +1,28 @@
 package org.hobbit.debs_2018_gc_samples.System;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.hobbit.core.components.AbstractSystemAdapter;
 import org.hobbit.sdk.JenaKeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import static org.hobbit.debs_2018_gc_samples.Constants.*;
+import static org.hobbit.debs_2018_gc_samples.Constants.QUERY_TYPE_KEY;
 
 
 public class SystemAdapter extends AbstractSystemAdapter {
     private static final String HOBBIT_SYSTEM_CONTAINER_ID_KEY = "";
+    private static final String PREDICTOR_URL = "http://localhost:5000";
+
     private static JenaKeyValue parameters;
     private Logger logger = LoggerFactory.getLogger(SystemAdapter.class);
     private int queryType = -1;
@@ -29,11 +37,14 @@ public class SystemAdapter extends AbstractSystemAdapter {
     int systemContainerId = 0;
     int systemInstancesCount = 1;
 
+    private OkHttpClient client;
+
     @Override
     public void init() throws Exception {
         super.init();
-
         logger.debug("INIT from a very fresh start with a very different approach!");
+
+        client = new OkHttpClient();
 
         // Your initialization code comes here...
         parameters = new JenaKeyValue.Builder().buildFrom(systemParamModel);
@@ -87,36 +98,44 @@ public class SystemAdapter extends AbstractSystemAdapter {
         String input = new String(data);
         logger.trace("receiveGeneratedTask({})->{}",taskId, input);
 
-        tuplesReceived++;
+        boolean useMock = true;
 
-        String[] splitted = input.split(",");
-        String shipId = splitted[0];
-        String timestamp = splitted[7];
-
-        int tuplesOfTheShip =  (tuplesPerShip.containsKey(shipId)? tuplesPerShip.get(shipId): 0);
-
-        tuplesOfTheShip++;
-
-        String result = "null";
+        String result = null;
         try {
-            // Send the result to the evaluation storage
-            result = splitted[8];
-            if(queryType==2)
-                result = result+","+splitted[7];
-
-        } catch (Exception e) {
-            errors++;
-            //logger.error("Processing error: {}", e.getMessage());
+            result = (useMock)
+				? mockPrediction(input, queryType)
+				: performPrediction(input, queryType);
+        } catch (IOException e) {
+            logger.error("An error occurred during prediction", e);
+            return;
         }
 
-        logger.trace("sendResultToEvalStorage({})->{}", taskId, result);
         try {
             sendResultToEvalStorage(taskId, result.getBytes());
         } catch (IOException e) {
-            logger.error("sendResultToEvalStorage error: {}", e.getMessage());
+            logger.error("An error occurred while trying to send result to eval storage", e);
         }
-        tuplesPerShip.put(shipId, tuplesOfTheShip);
+    }
 
+    private String performPrediction(String input, int queryType) throws IOException {
+        RequestBody body = RequestBody.create(MediaType.parse("TEXT/PLAIN"), input);
+        Request request = new Request.Builder()
+            .url(PREDICTOR_URL)
+            .post(body)
+            .build();
+
+        Response response = this.client.newCall(request).execute();
+        return response.body().string();
+    }
+
+    private String mockPrediction(String input, int queryType) {
+        String[] splitted = input.split(",");
+        String result = splitted[8];
+        if (queryType == 2) {
+            return result + "," + splitted[7];
+        } else {
+            return result;
+        }
     }
 
     @Override

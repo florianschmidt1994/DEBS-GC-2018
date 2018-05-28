@@ -68,7 +68,12 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
         //dataGenDockerBuilder = new  DataGenDockerBuilder(new PullBasedDockersBuilder(dataGeneratorImageName).skipLogsReading(skipLogsReading).useCachedContainer(false));
         evalStorageDockerBuilder = new EvalStorageDockerBuilder(new PullBasedDockersBuilder(evalStorageImageName).skipLogsReading(skipLogsReading).useCachedContainer(false));
 
-        systemAdapterBuilder = new SystemAdapterDockerBuilder(new SampleDockersBuilder(SystemAdapter.class).imageName(SYSTEM_IMAGE_NAME).useCachedImage(useCachedImages).useCachedContainer(false));
+        systemAdapterBuilder = new SystemAdapterDockerBuilder(
+            new SampleDockersBuilder(SystemAdapter.class)
+                .imageName(SYSTEM_IMAGE_NAME)
+                .useCachedImage(useCachedImages)
+                .useCachedContainer(false)
+        );
 
     }
 

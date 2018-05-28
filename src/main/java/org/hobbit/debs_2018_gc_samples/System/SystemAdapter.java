@@ -22,11 +22,12 @@ import static org.hobbit.debs_2018_gc_samples.Constants.QUERY_TYPE_KEY;
 public class SystemAdapter extends AbstractSystemAdapter {
     private static final String HOBBIT_SYSTEM_CONTAINER_ID_KEY = "";
     private static final String PREDICTOR_URL = "http://localhost:5000";
-
     private static JenaKeyValue parameters;
-    private Logger logger = LoggerFactory.getLogger(SystemAdapter.class);
+
     private int queryType = -1;
     private final Map<String, Integer> tuplesPerShip = new HashMap<String, Integer>();
+
+    private Logger logger = LoggerFactory.getLogger(SystemAdapter.class);
 
     Timer timer;
     boolean timerStarted=false;
@@ -38,21 +39,26 @@ public class SystemAdapter extends AbstractSystemAdapter {
     int systemInstancesCount = 1;
 
     private OkHttpClient client;
+    private Process predictorProcess;
 
     @Override
     public void init() throws Exception {
         super.init();
-        logger.debug("INIT from a very fresh start with a very different approach!");
+
+        this.predictorProcess = spawnPredictorProcess();
+        this.predictorProcess.waitFor();
+
+        System.out.println("Version 99!");
+        logger.debug("Version 100!");
 
         client = new OkHttpClient();
 
         // Your initialization code comes here...
         parameters = new JenaKeyValue.Builder().buildFrom(systemParamModel);
 
-        if(parameters.containsKey(HOBBIT_SYSTEM_CONTAINER_ID_KEY))
-            systemContainerId = Integer.parseInt(parameters.getStringValueFor(HOBBIT_SYSTEM_CONTAINER_ID_KEY));
-
-        logger = LoggerFactory.getLogger(SystemAdapter.class.getName()+"_"+ systemContainerId);
+        if (parameters.containsKey(HOBBIT_SYSTEM_CONTAINER_ID_KEY)) {
+            systemContainerId = parameters.getIntValueFor(HOBBIT_SYSTEM_CONTAINER_ID_KEY);
+        }
 
         queryType = parameters.getIntValueFor(QUERY_TYPE_KEY);
         if(queryType<=0){
@@ -67,6 +73,17 @@ public class SystemAdapter extends AbstractSystemAdapter {
         logger.info("Finished initializing!");
     }
 
+    private Process spawnPredictorProcess() {
+        try {
+            return new ProcessBuilder("/usr/src/debs2018solution/run.py")
+                .inheritIO()
+                .start();
+        } catch (IOException e) {
+            // not being able to spawn the prediction process
+            // is severe enough to fail to whole system
+            throw new RuntimeException(e);
+        }
+    }
     private void startTimer(){
         if(timerStarted)
             return;

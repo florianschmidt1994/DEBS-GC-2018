@@ -75,7 +75,7 @@ public class SystemAdapter extends AbstractSystemAdapter {
 
     private Process spawnPredictorProcess() {
         try {
-            return new ProcessBuilder("/usr/src/debs2018solution/run.py")
+            return new ProcessBuilder("/usr/src/debs2018solution/solution/flask-main.py")
                 .inheritIO()
                 .start();
         } catch (IOException e) {

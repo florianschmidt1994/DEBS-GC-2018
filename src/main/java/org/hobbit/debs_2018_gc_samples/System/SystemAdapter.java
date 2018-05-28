@@ -21,7 +21,7 @@ import static org.hobbit.debs_2018_gc_samples.Constants.QUERY_TYPE_KEY;
 
 public class SystemAdapter extends AbstractSystemAdapter {
     private static final String HOBBIT_SYSTEM_CONTAINER_ID_KEY = "";
-    private static final String PREDICTOR_URL = "http://localhost:5000";
+    private static final String PREDICTOR_PORT_URL = "http://localhost:5000/predict_port";
     private static JenaKeyValue parameters;
 
     private int queryType = -1;
@@ -46,7 +46,7 @@ public class SystemAdapter extends AbstractSystemAdapter {
         super.init();
 
         this.predictorProcess = spawnPredictorProcess();
-        this.predictorProcess.waitFor();
+        // this.predictorProcess.waitFor();
 
         System.out.println("Version 99!");
         logger.debug("Version 100!");
@@ -75,7 +75,8 @@ public class SystemAdapter extends AbstractSystemAdapter {
 
     private Process spawnPredictorProcess() {
         try {
-            return new ProcessBuilder("/usr/src/debs2018solution/solution/flask-main.py")
+            return new ProcessBuilder("/Users/florianschmidt/dev/SELab/DEBS-GC-2018/solution/flask-main.py")
+            //return new ProcessBuilder("/usr/src/debs2018solution/solution/flask-main.py")
                 .inheritIO()
                 .start();
         } catch (IOException e) {
@@ -115,7 +116,7 @@ public class SystemAdapter extends AbstractSystemAdapter {
         String input = new String(data);
         logger.trace("receiveGeneratedTask({})->{}",taskId, input);
 
-        boolean useMock = true;
+        boolean useMock = false;
 
         String result = null;
         try {
@@ -137,7 +138,7 @@ public class SystemAdapter extends AbstractSystemAdapter {
     private String performPrediction(String input, int queryType) throws IOException {
         RequestBody body = RequestBody.create(MediaType.parse("TEXT/PLAIN"), input);
         Request request = new Request.Builder()
-            .url(PREDICTOR_URL)
+            .url(PREDICTOR_PORT_URL)
             .post(body)
             .build();
 

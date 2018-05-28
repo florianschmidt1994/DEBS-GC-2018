@@ -46,10 +46,6 @@ public class SystemAdapter extends AbstractSystemAdapter {
         super.init();
 
         this.predictorProcess = spawnPredictorProcess();
-        // this.predictorProcess.waitFor();
-
-        System.out.println("Version 99!");
-        logger.debug("Version 100!");
 
         client = new OkHttpClient();
 
@@ -75,8 +71,8 @@ public class SystemAdapter extends AbstractSystemAdapter {
 
     private Process spawnPredictorProcess() {
         try {
-            return new ProcessBuilder("/Users/florianschmidt/dev/SELab/DEBS-GC-2018/solution/flask-main.py")
-            //return new ProcessBuilder("/usr/src/debs2018solution/solution/flask-main.py")
+            // return new ProcessBuilder("/Users/florianschmidt/dev/SELab/DEBS-GC-2018/solution/flask-main.py")
+            return new ProcessBuilder("/usr/src/debs2018solution/solution/flask-main.py")
                 .inheritIO()
                 .start();
         } catch (IOException e) {

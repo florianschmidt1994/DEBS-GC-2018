@@ -105,12 +105,13 @@ public class SystemAdapter extends AbstractSystemAdapter {
         String result = "null";
         try {
             // Send the result to the evaluation storage
-            // result = Predictor.getInstance().predict(input, queryType);
-            result = MockPredictor.getInstance().predict(input, queryType);
+            result = Predictor.getInstance().predict(input, queryType);
+            // result = MockPredictor.getInstance().predict(input, queryType);
 
         } catch (Exception e) {
             errors++;
-            //logger.error("Processing error: {}", e.getMessage());
+            logger.error("Processing error: {}", e.getMessage());
+            e.printStackTrace();
         }
 
         logger.trace("sendResultToEvalStorage({})->{}", taskId, result);
@@ -128,6 +129,8 @@ public class SystemAdapter extends AbstractSystemAdapter {
         timer.cancel();
         // Free the resources you requested here
         logger.debug("close()");
+
+        Predictor.getInstance().close();
 
         // Always close the super class after yours!
         super.close();

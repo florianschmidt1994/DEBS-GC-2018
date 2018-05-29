@@ -5,19 +5,28 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Predictor {
 
-	private static final String BASE_PATH = "/Users/florianschmidt/dev/SELab/DEBS-GC-2018";
+	private static final String BASE_PATH = "/Users/florianschmidt/dev/SELab/DEBS-GC-2018/";
 
 	private static Predictor predictor;
 
 	private final OkHttpClient client;
 	private final int numberOfInstances;
+	private Set<Process> instances = new HashSet<>();
+
+	private final int portBase = 5000;
 
 	private int currentInstance = 0;
+	private Logger logger = LoggerFactory.getLogger(Predictor.class);
+
 
 	public static synchronized Predictor getInstance() {
 		if (Predictor.predictor == null) {
@@ -28,11 +37,12 @@ public class Predictor {
 	}
 
 	private Predictor(int numberOfInstances) {
+		this.client = new OkHttpClient();
+
 		for (int i = 0; i < numberOfInstances; i++) {
-			spawnPredictorProcess(i);
+			instances.add(spawnPredictorProcess(i));
 		}
 		this.numberOfInstances = numberOfInstances;
-		this.client = new OkHttpClient();
 	}
 
 	public String predict(String input, int queryType) throws IOException {
@@ -41,27 +51,10 @@ public class Predictor {
 		return result;
 	}
 
-//	private String mockPrediction(String input, int queryType) throws IOException {
-//
-//		String key = keyForRow(input);
-//
-//		if (portLookup == null || timeLookup == null) {
-//			setupLookupMaps();
-//		}
-//
-//		String truePort = portLookup.getOrDefault(keyForRow(input), "");
-//		String trueTime = timeLookup.getOrDefault(keyForRow(input), "");
-//		if (queryType == 2) {
-//			return truePort + "," + trueTime;
-//		} else {
-//			return truePort;
-//		}
-//	}
-
 	private String performPrediction(String input, int queryType,
 		int currentInstance) throws IOException {
 
-		int port = 5000 + currentInstance;
+		int port = portBase + currentInstance;
 
 		String predictionUrl = (queryType == 1)
 			? "http://localhost:" + port + "/predict_port"
@@ -77,34 +70,48 @@ public class Predictor {
 		return response.body().string();
 	}
 
-//	private void setupLookupMaps() throws IOException {
-//		this.portLookup = Files
-//			.readAllLines(Paths.get("data", "debs2018_second_dataset_training_labeled_v7.csv"))
-//			.stream()
-//			.collect(Collectors.toMap(this::keyForRow, this::extractTimeFromFow, (p1, p2) -> p2));
-//
-//		logger.info("Setup portLookup with " + portLookup.keySet().size() + " keys");
-//
-//		this.timeLookup = Files
-//			.readAllLines(Paths.get("data", "debs2018_second_dataset_training_labeled_v7.csv"))
-//			.stream()
-//			.collect(Collectors.toMap(this::keyForRow, this::extractPortFromRow, (p1, p2) -> p2));
-//
-//		logger.info("Setup timeLookup with " + timeLookup.keySet().size() + " keys");
-//	}
-
 	private Process spawnPredictorProcess(int portOffset) {
-		int portBase = 5000;
-		int port = portBase + portOffset;
 
+		int port = portBase + portOffset;
+		Process p;
 		try {
-			return new ProcessBuilder(BASE_PATH + "solution/flask-main.py" + port)
+			p = new ProcessBuilder(BASE_PATH + "solution/flask-main.py", String.valueOf(port))
 				.inheritIO()
 				.start();
 		} catch (IOException e) {
 			// not being able to spawn the prediction process
 			// is severe enough to fail to whole system
+			logger.error("Error spawning new instance", e);
 			throw new RuntimeException(e);
+		}
+
+		boolean isUp = false;
+		while (!isUp) {
+			Request request = new Request.Builder()
+				.url("http://localhost:"+port)
+				.build();
+			try {
+				String res = client.newCall(request).execute().body().string();
+				if (res.equals("HEALTHY")) {
+					isUp = true;
+				}
+			} catch (IOException e) {
+				// waiting for process to come up
+				try {
+					Thread.sleep(100);
+					logger.debug("Waiting for instance to come up");
+				} catch (InterruptedException e1) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+
+		return p;
+	}
+
+	public void close() {
+		for (Process p : instances) {
+			p.destroyForcibly();
 		}
 	}
 }

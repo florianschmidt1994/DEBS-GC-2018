@@ -11,10 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 import static org.hobbit.debs_2018_gc_samples.Constants.QUERY_TYPE_KEY;
 
@@ -29,25 +30,71 @@ public class SystemAdapter extends AbstractSystemAdapter {
 
     private Logger logger = LoggerFactory.getLogger(SystemAdapter.class);
 
-    Timer timer;
-    boolean timerStarted=false;
     long lastReportedValue = 0;
     long tuplesReceived=0;
     long errors=0;
-    int timerPeriodSeconds = 5;
     int systemContainerId = 0;
     int systemInstancesCount = 1;
 
     private OkHttpClient client;
     private Process predictorProcess;
 
+    private Map<String, String> portLookup;
+    private Map<String, String> timeLookup;
+
+    private boolean useMock = true;
+
+    private String keyForRow(String row) {
+        String[] splitted = row.split(",");
+        return splitted[0]
+            + splitted[1]
+            + splitted[2]
+            + splitted[3]
+            + splitted[4]
+            + splitted[5]
+            + splitted[6]
+            + splitted[7];
+    }
+
+    private String extractTimeFromFow(String row) {
+        return row.split(",", -1)[12];
+    }
+
+    private String extractPortFromRow(String row) {
+        return row.split(",", -1)[11];
+    }
+
     @Override
     public void init() throws Exception {
         super.init();
 
-        this.predictorProcess = spawnPredictorProcess();
+        try {
+            unsafeInit();
+        } catch (Exception e) {
+            logger.error("An exception happened during init", e);
+            e.printStackTrace();
 
-        client = new OkHttpClient();
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void unsafeInit() throws Exception {
+
+        if (useMock) {
+            this.portLookup = Files
+                .readAllLines(Paths.get("data", "debs2018_second_dataset_training_labeled_v7.csv"))
+                .stream()
+                .collect(Collectors.toMap(this::keyForRow, this::extractTimeFromFow, (p1, p2) -> p2));
+
+            this.timeLookup = Files
+                .readAllLines(Paths.get("data", "debs2018_second_dataset_training_labeled_v7.csv"))
+                .stream()
+                .collect(Collectors.toMap(this::keyForRow, this::extractPortFromRow, (p1, p2) -> p2));
+        } else {
+            this.predictorProcess = spawnPredictorProcess();
+            client = new OkHttpClient();
+        }
 
         // Your initialization code comes here...
         parameters = new JenaKeyValue.Builder().buildFrom(systemParamModel);
@@ -64,15 +111,13 @@ public class SystemAdapter extends AbstractSystemAdapter {
         }
 
         logger.debug("SystemModel: "+parameters.encodeToString());
-
-        timer = new Timer();
         logger.info("Finished initializing!");
     }
 
     private Process spawnPredictorProcess() {
         try {
-            // return new ProcessBuilder("/Users/florianschmidt/dev/SELab/DEBS-GC-2018/solution/flask-main.py")
-            return new ProcessBuilder("/usr/src/debs2018solution/solution/flask-main.py")
+            return new ProcessBuilder("/Users/florianschmidt/dev/SELab/DEBS-GC-2018/solution/flask-main.py")
+//            return new ProcessBuilder("/usr/src/debs2018solution/solution/flask-main.py")
                 .inheritIO()
                 .start();
         } catch (IOException e) {
@@ -81,23 +126,6 @@ public class SystemAdapter extends AbstractSystemAdapter {
             throw new RuntimeException(e);
         }
     }
-    private void startTimer(){
-        if(timerStarted)
-            return;
-        timerStarted = true;
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-
-                long valDiff = (tuplesReceived - lastReportedValue)/timerPeriodSeconds;
-                logger.debug("{} tuples received. Curr: {} tuples/s. {}", tuplesReceived, valDiff, (errors>0?errors+" errors":""));
-                lastReportedValue = tuplesReceived;
-
-            }
-        }, 1000, timerPeriodSeconds*1000);
-
-    }
-
 
     @Override
     public void receiveGeneratedData(byte[] data) {
@@ -107,18 +135,16 @@ public class SystemAdapter extends AbstractSystemAdapter {
 
     @Override
     public void receiveGeneratedTask(String taskId, byte[] data) {
-        startTimer();
         // handle the incoming task and create a result
         String input = new String(data);
         logger.trace("receiveGeneratedTask({})->{}",taskId, input);
 
-        boolean useMock = false;
-
         String result = null;
         try {
             result = (useMock)
-				? mockPrediction(input, queryType)
-				: performPrediction(input, queryType);
+                ? mockPrediction(input, this.queryType)
+                : performPrediction(input, this.queryType);
+
         } catch (IOException e) {
             logger.error("An error occurred during prediction", e);
             return;
@@ -132,9 +158,14 @@ public class SystemAdapter extends AbstractSystemAdapter {
     }
 
     private String performPrediction(String input, int queryType) throws IOException {
+
+        String predictionUrl = (queryType == 1)
+            ? "http://localhost:5000/predict_port"
+            : "http://localhost:5000/predict_port_and_time";
+
         RequestBody body = RequestBody.create(MediaType.parse("TEXT/PLAIN"), input);
         Request request = new Request.Builder()
-            .url(PREDICTOR_PORT_URL)
+            .url(predictionUrl)
             .post(body)
             .build();
 
@@ -142,19 +173,20 @@ public class SystemAdapter extends AbstractSystemAdapter {
         return response.body().string();
     }
 
-    private String mockPrediction(String input, int queryType) {
-        String[] splitted = input.split(",");
-        String result = splitted[8];
+    private String mockPrediction(String input, int queryType) throws IOException {
+
+        String key = keyForRow(input);
+        String truePort = portLookup.getOrDefault(keyForRow(input), "");
+        String trueTime = timeLookup.getOrDefault(keyForRow(input), "");
         if (queryType == 2) {
-            return result + "," + splitted[7];
+            return truePort + "," + trueTime;
         } else {
-            return result;
+            return truePort;
         }
     }
 
     @Override
     public void close() throws IOException {
-        timer.cancel();
         // Free the resources you requested here
         logger.debug("close()");
 

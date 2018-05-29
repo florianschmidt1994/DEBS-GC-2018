@@ -7,7 +7,7 @@ import java.text.SimpleDateFormat;
 public class Constants {
     public static String ENCRYPTION_KEY_NAME = "ENCRYPTION_KEY";
 
-    public static final String GIT_REPO_PATH = "git.project-hobbit.eu:4567/florian.schmidt.1994";
+    public static final String GIT_REPO_PATH = "git.project-hobbit.eu:4567/florian.schmidt.1994/";
     public static final String PROJECT_NAME = "debs2018solution";
 
     public static final Charset CHARSET = Charset.forName("UTF-8");

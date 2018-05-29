@@ -100,7 +100,7 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
     private void checkHealth(boolean dockerized) throws Exception {
 
-        Boolean useCachedImages = true;
+        Boolean useCachedImages = false;
 
 
         init(useCachedImages);
@@ -151,7 +151,7 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
     }
 
 
-    private static int QUERY_TYPE = 1;
+    private static int QUERY_TYPE = 2;
 
     public static JenaKeyValue createBenchmarkParameters(){
         JenaKeyValue kv = new JenaKeyValue(EXPERIMENT_URI);

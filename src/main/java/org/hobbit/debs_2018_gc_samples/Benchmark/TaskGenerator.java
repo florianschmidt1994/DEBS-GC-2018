@@ -102,6 +102,7 @@ public class TaskGenerator extends AbstractTaskGenerator {
 			recordsLimit = 1500;
 			// recordsLimit = Integer.parseInt(System.getenv().get("GENERATOR_LIMIT"));
 		}
+		recordsLimit = 100000;
 
 		if (System.getenv().containsKey("GENERATOR_TIMEOUT")) {
 			logger.debug("GENERATOR_TIMEOUT={}", System.getenv().get("GENERATOR_TIMEOUT"));
@@ -178,7 +179,8 @@ public class TaskGenerator extends AbstractTaskGenerator {
 
 		//String[] lines = Utils.readFile(Paths.get("data","1000rowspublic_fixed.csv"), recordsLimit);
 		Utils utils = new Utils(this.logger);
-		String[] lines = utils.readFile(Paths.get("data", "debs2018_training_fixed_5.csv"), recordsLimit);
+		// String[] lines = utils.readFile(Paths.get("data", "debs2018_training_fixed_5.csv"), recordsLimit);
+		 String[] lines = utils.readFile(Paths.get("data", "debs2018_second_dataset_training_labeled_v7.csv"), recordsLimit);
 
 		//String[] lines = Utils.readFile(Paths.get("data","debs2018_training_labeled.csv"), recordsLimit);
 

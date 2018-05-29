@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 
@@ -6,6 +6,10 @@ from flask import Flask, request
 from sklearn.externals import joblib
 
 from solution.Predictor import Predictor
+
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 app = Flask(__name__)
 

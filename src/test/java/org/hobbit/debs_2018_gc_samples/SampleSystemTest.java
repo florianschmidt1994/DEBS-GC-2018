@@ -37,7 +37,7 @@ public class SampleSystemTest extends EnvironmentVariablesWrapper {
 
     @Test
     public void checkHealthDockerized() throws Exception {
-        this.buildImages();
+        // this.buildImages();
         sampleSystemTestRunner.checkHealthDockerized();
     }
 }

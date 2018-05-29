@@ -151,11 +151,11 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
     }
 
 
-    private static int QUERY_TYPE = 2;
+    private static int QUERY_TYPE = 1;
 
     public static String createBenchmarkParameters(){
         JenaKeyValue kv = new JenaKeyValue(EXPERIMENT_URI);
-        kv.setValue(TUPLES_LIMIT, 1000);
+        kv.setValue(TUPLES_LIMIT, 10000);
         kv.setValue(BENCHMARK_TIMEOUT_MIN , 60);
         kv.setValue(QUERY_TYPE_KEY, QUERY_TYPE);
         return kv.encodeToString();

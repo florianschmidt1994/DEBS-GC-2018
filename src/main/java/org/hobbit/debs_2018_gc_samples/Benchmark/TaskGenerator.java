@@ -141,10 +141,10 @@ public class TaskGenerator extends AbstractTaskGenerator {
         //getPointsPerShip(Paths.get("data","vessel24hpublic_fixed.csv"),0);
         //getPointsPerShip(Paths.get("data","debs2018_training_fixed_2.csv"), recordsLimit);
 
-        //String[] lines = Utils.readFile(Paths.get("data","1000rowspublic_fixed.csv"), recordsLimit);
-        Utils utils = new Utils(this.logger);
-        //String[] lines = utils.readFile(Paths.get("data","debs2018_training_fixed_5.csv"), recordsLimit);
-        String[] lines = utils.readFile(Paths.get("data","debs2018_labeled_v7_test_20.csv"), recordsLimit);
+		//String[] lines = Utils.readFile(Paths.get("data","1000rowspublic_fixed.csv"), recordsLimit);
+		Utils utils = new Utils(this.logger);
+		// String[] lines = utils.readFile(Paths.get("data", "debs2018_training_fixed_5.csv"), recordsLimit);
+		 String[] lines = utils.readFile(Paths.get("data", "debs2018_second_dataset_training_labeled_v7.csv"), recordsLimit);
 
 
         shipTrips = utils.getTripsPerShips(lines);

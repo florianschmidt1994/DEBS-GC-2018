@@ -4,9 +4,8 @@ import os
 
 from flask import Flask, request
 from sklearn.externals import joblib
-
 from solution.Predictor import Predictor
-
+import sys
 import logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -40,5 +39,5 @@ def predict_port_and_time():
     port, time = predictor.predict_port_and_time(input)
     return "%s, %s" % (port, time)
 
-
-app.run()
+port = int(sys.argv[1])
+app.run(host='0.0.0.0',port=port)

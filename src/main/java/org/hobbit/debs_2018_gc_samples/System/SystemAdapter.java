@@ -5,6 +5,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.hobbit.core.Constants;
 import org.hobbit.core.components.AbstractSystemAdapter;
 import org.hobbit.sdk.JenaKeyValue;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import static org.hobbit.debs_2018_gc_samples.Constants.*;
 
 import static org.hobbit.debs_2018_gc_samples.Constants.QUERY_TYPE_KEY;
 
@@ -98,6 +100,13 @@ public class SystemAdapter extends AbstractSystemAdapter {
 
         // Your initialization code comes here...
         parameters = new JenaKeyValue.Builder().buildFrom(systemParamModel);
+
+        if(!parameters.containsKey(BENCHMARK_URI+"#slaveNode")) {
+            JenaKeyValue slaveParameters = new JenaKeyValue(parameters);
+            slaveParameters.put(BENCHMARK_URI+"#slaveNode", "TRUE");
+            createContainer(SYSTEM_IMAGE_NAME, new String[]{ Constants.SYSTEM_PARAMETERS_MODEL_KEY+"="+ slaveParameters.encodeToString() });
+        }else
+            logger = LoggerFactory.getLogger(SystemAdapter.class.getCanonicalName()+"_slave");
 
         if (parameters.containsKey(HOBBIT_SYSTEM_CONTAINER_ID_KEY)) {
             systemContainerId = parameters.getIntValueFor(HOBBIT_SYSTEM_CONTAINER_ID_KEY);

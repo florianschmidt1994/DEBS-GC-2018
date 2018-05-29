@@ -82,8 +82,8 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
         init(false);
 
         //pull images from remote repo
-        benchmarkDockerBuilder.build().prepareImage();
-        evalStorageDockerBuilder.build().prepareImage();
+        //benchmarkDockerBuilder.build().prepareImage();
+        //evalStorageDockerBuilder.build().prepareImage();
 
         //build image of you system
         systemAdapterBuilder.build().prepareImage();
@@ -135,11 +135,11 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
         commandQueueListener.waitForInitialisation();
 
         commandQueueListener.submit(benchmarkImageName, new String[]{
-                Constants.BENCHMARK_PARAMETERS_MODEL_KEY+"="+ System.getenv().get(Constants.BENCHMARK_PARAMETERS_MODEL_KEY ),
+                Constants.BENCHMARK_PARAMETERS_MODEL_KEY+"="+ createBenchmarkParameters(),
                 //"HOBBIT_SESSION_ID="+System.getenv().get("HOBBIT_SESSION_ID")
         });
         commandQueueListener.submit(systemImageName, new String[]{
-                Constants.SYSTEM_PARAMETERS_MODEL_KEY+"="+ System.getenv().get(Constants.SYSTEM_PARAMETERS_MODEL_KEY ),
+                Constants.SYSTEM_PARAMETERS_MODEL_KEY+"="+ createSystemParameters(),
                 //"HOBBIT_SESSION_ID="+System.getenv().get("HOBBIT_SESSION_ID")
         });
 
@@ -153,18 +153,18 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
     private static int QUERY_TYPE = 2;
 
-    public static JenaKeyValue createBenchmarkParameters(){
+    public static String createBenchmarkParameters(){
         JenaKeyValue kv = new JenaKeyValue(EXPERIMENT_URI);
-        kv.setValue(GENERATOR_LIMIT, 1000);
-        kv.setValue(GENERATOR_TIMEOUT, 60);
+        kv.setValue(TUPLES_LIMIT, 1000);
+        kv.setValue(BENCHMARK_TIMEOUT_MIN , 60);
         kv.setValue(QUERY_TYPE_KEY, QUERY_TYPE);
-        return kv;
+        return kv.encodeToString();
     }
 
-    public static JenaKeyValue createSystemParameters(){
+    public static String createSystemParameters(){
         JenaKeyValue kv = new JenaKeyValue();
         kv.setValue(QUERY_TYPE_KEY, QUERY_TYPE);
-        return kv;
+        return kv.encodeToString();
     }
 
 

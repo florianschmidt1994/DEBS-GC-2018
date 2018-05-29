@@ -14,7 +14,8 @@ import java.util.Set;
 
 public class Predictor {
 
-	private static final String BASE_PATH = "/Users/florianschmidt/dev/SELab/DEBS-GC-2018/";
+	private static final String BASE_PATH = "/home/andre/Documents/DEBS18/DEBS-GC-2018/";
+//        private static final String BASE_PATH = "/usr/src/debs2018solution/";
 
 	private static Predictor predictor;
 
@@ -60,14 +61,21 @@ public class Predictor {
 			? "http://localhost:" + port + "/predict_port"
 			: "http://localhost:" + port + "/predict_port_and_time";
 
-		RequestBody body = RequestBody.create(MediaType.parse("TEXT/PLAIN"), input);
-		Request request = new Request.Builder()
-			.url(predictionUrl)
-			.post(body)
-			.build();
+                do {
+                    try {
+                        RequestBody body = RequestBody.create(MediaType.parse("TEXT/PLAIN"), input);
+                        Request request = new Request.Builder()
+                                .url(predictionUrl)
+                                .post(body)
+                                .build();
 
-		Response response = this.client.newCall(request).execute();
-		return response.body().string();
+                        Response response = this.client.newCall(request).execute();
+                        return response.body().string();
+                    }
+                    catch(Exception e) {}
+                    try{Thread.sleep(100);} catch (InterruptedException e) {}
+                }
+                while(true);
 	}
 
 	private Process spawnPredictorProcess(int portOffset) {

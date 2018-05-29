@@ -46,7 +46,7 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
     public static void main(String[] args) throws Exception {
         SampleSystemTestRunner test = new SampleSystemTestRunner(args[0], args[1]);
-        test.checkHealth();
+        test.checkHealth(false);
     }
 
     public SampleSystemTestRunner(String systemImageName, String sessionId){
@@ -155,7 +155,7 @@ public class SampleSystemTestRunner extends EnvironmentVariablesWrapper {
 
     public static String createBenchmarkParameters(){
         JenaKeyValue kv = new JenaKeyValue(EXPERIMENT_URI);
-        kv.setValue(TUPLES_LIMIT, 10000);
+        kv.setValue(TUPLES_LIMIT, 500000);
         kv.setValue(BENCHMARK_TIMEOUT_MIN , 60);
         kv.setValue(QUERY_TYPE_KEY, QUERY_TYPE);
         return kv.encodeToString();

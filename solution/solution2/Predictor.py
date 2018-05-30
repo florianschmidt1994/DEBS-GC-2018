@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import datetime
 import time
+import tensorflow as tf
 
 ports = {'ALEXANDRIA': 0,
  'AUGUSTA': 1,
@@ -115,6 +116,7 @@ class Predictor:
     def __init__(self, port_model, time_model, scaler):
         self.port_model = port_model
         self.time_model = time_model
+        self.graph = tf.get_default_graph()
         self.ports = ports
         self.scaler = scaler
 
@@ -149,7 +151,8 @@ class Predictor:
         feed_tuple = np.append(feed_tuple, distance)
 
         # Predict the ETA
-        time_left = self.time_model.predict(self.scaler.transform(feed_tuple.reshape(1, -1)))
+        with self.graph.as_default():
+             time_left = self.time_model.predict(np.array(self.scaler.transform(feed_tuple.reshape(1, -1))))        
         #eta = initial_time + time_left
 
         return destination_port, feed_tuple, time_left#from_unixtime(eta)

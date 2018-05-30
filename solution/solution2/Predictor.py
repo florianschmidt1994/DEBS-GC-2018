@@ -112,10 +112,11 @@ ARRIVAL_PORT_CALC = 11  # ??
 
 
 class Predictor:
-    def __init__(self, port_model, time_model):
+    def __init__(self, port_model, time_model, scaler):
         self.port_model = port_model
         self.time_model = time_model
         self.ports = ports
+        self.scaler = scaler
 
     def predict_port_and_time(self, data):
         # Parse string to array and convert all fields to numbers
@@ -148,7 +149,7 @@ class Predictor:
         feed_tuple = np.append(feed_tuple, distance)
 
         # Predict the ETA
-        time_left = self.time_model.predict(scaler.transform(feed_tuple.reshape(1, -1)))
+        time_left = self.time_model.predict(self.scaler.transform(feed_tuple.reshape(1, -1)))
         #eta = initial_time + time_left
 
         return destination_port, feed_tuple, time_left#from_unixtime(eta)

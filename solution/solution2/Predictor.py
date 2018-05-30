@@ -126,7 +126,7 @@ class Predictor:
         initial_time = feed_list[6]  # we need this below. TODO: Fix this ugly entanglement
 
         port_features = feed_list[:6]+feed_list[7:]
-        port_features = np.asarray([round(float(i),2) if '.' in i else int(i) for i in port_features])
+        port_features = np.asarray(port_features)
 
         # Predict destination port
         port = self.port_model.predict(port_features.reshape(-1, 8))
@@ -155,7 +155,7 @@ class Predictor:
 
 
 def parse(input_str):
-    data = input_str.split(",")
+    data = input_str.replace("\'","").split(",")
     parsed_data = [
         data[SHIPTYPE],
         data[SPEED],

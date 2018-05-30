@@ -1,0 +1,86 @@
+version: '3.3'
+
+services:
+  benchmark-controller:
+    image: git.project-hobbit.eu:4567/debs_2018_gc/benchmark-controller
+    environment:
+      HOBBIT_EXPERIMENT_URI: http://example.com/exp1
+      HOBBIT_RABBIT_HOST: rabbit
+      TUPLES_LIMIT: 10000
+      HOBBIT_SESSION_ID: session12345
+      BENCHMARK_PARAMETERS_MODEL: | 
+        {
+            "@id" : "http://example.com/exp1",
+            "benchmarkTimeoutMin" : "60",
+            "queryType" : "1",
+            "tuplesLimit" : "500000",
+            "@context" : {
+                "queryType" : {
+                "@id" : "http://project-hobbit.eu/sml-benchmark-v2/queryType",
+                "@type" : "http://www.w3.org/2001/XMLSchema#int"
+                },
+                "benchmarkTimeoutMin" : {
+                "@id" : "http://project-hobbit.eu/sml-benchmark-v2/benchmarkTimeoutMin",
+                "@type" : "http://www.w3.org/2001/XMLSchema#int"
+                },
+                "tuplesLimit" : {
+                "@id" : "http://project-hobbit.eu/sml-benchmark-v2/tuplesLimit",
+                "@type" : "http://www.w3.org/2001/XMLSchema#int"
+                }
+            }
+            }
+
+
+  eval-storage:
+    image: git.project-hobbit.eu:4567/debs_2018_gc/eval-storage
+    environment:
+      HOBBIT_EXPERIMENT_URI: http://example.com/exp1
+      HOBBIT_RABBIT_HOST: rabbit
+      HOBBIT_SESSION_ID: session12345
+      QUERY_TYPE: 1
+      BENCHMARK_PARAMETERS_MODEL: | 
+        {
+            "@id" : "http://example.com/exp1",
+            "benchmarkTimeoutMin" : "60",
+            "queryType" : "1",
+            "tuplesLimit" : "500000",
+            "@context" : {
+                "queryType" : {
+                "@id" : "http://project-hobbit.eu/sml-benchmark-v2/queryType",
+                "@type" : "http://www.w3.org/2001/XMLSchema#int"
+                },
+                "benchmarkTimeoutMin" : {
+                "@id" : "http://project-hobbit.eu/sml-benchmark-v2/benchmarkTimeoutMin",
+                "@type" : "http://www.w3.org/2001/XMLSchema#int"
+                },
+                "tuplesLimit" : {
+                "@id" : "http://project-hobbit.eu/sml-benchmark-v2/tuplesLimit",
+                "@type" : "http://www.w3.org/2001/XMLSchema#int"
+                }
+            }
+            }
+
+  rabbit:
+    image: rabbitmq
+    hostname: rabbit
+    ports:
+        - "15672:15672"
+        - "5672:5672"
+
+  task-generator:
+    image: git.project-hobbit.eu:4567/debs_2018_gc/task-generator
+    environment:
+      HOBBIT_EXPERIMENT_URI: http://example.com/exp1
+      HOBBIT_RABBIT_HOST: rabbit
+      TUPLES_LIMIT: 10000
+      HOBBIT_GENERATOR_ID: 12345
+      HOBBIT_GENERATOR_COUNT: 10000
+      HOBBIT_SESSION_ID: session12345
+
+  system-adapter:
+    image: git.project-hobbit.eu:4567/florian.schmidt.1994/debs2018solution/system-adapter:latest
+    environment:
+      HOBBIT_EXPERIMENT_URI: http://example.com/exp1
+      HOBBIT_RABBIT_HOST: rabbit
+      TUPLES_LIMIT: 10000
+      HOBBIT_SESSION_ID: session12345

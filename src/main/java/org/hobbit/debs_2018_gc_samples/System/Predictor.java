@@ -14,8 +14,8 @@ import java.util.Set;
 
 public class Predictor {
 
-	private static final String BASE_PATH = "/home/andre/Documents/DEBS18/DEBS-GC-2018/";
-//        private static final String BASE_PATH = "/usr/src/debs2018solution/";
+//	private static final String BASE_PATH = "/home/andre/Documents/DEBS18/DEBS-GC-2018/";
+        private static final String BASE_PATH = "/usr/src/debs2018solution/";
 
 	private static Predictor predictor;
 

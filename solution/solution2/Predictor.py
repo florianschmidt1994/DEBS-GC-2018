@@ -162,7 +162,7 @@ class Predictor:
         feed_tuple = np.append(port_features, port)
         feed_tuple = np.append(feed_tuple, destination_coordinates)
         #print((feed_tuple[1]), feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
-        distance = haversine((feed_tuple[1]), feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
+        distance = haversine(feed_tuple[1], feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
 
 
         #Checking the cluster
@@ -255,7 +255,7 @@ def haversine(lon1, lat1, lon2, lat2):
     on the earth (specified in decimal degrees)
     """
     # convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = map(float(radians), [float(lon1), float(lat1), float(lon2), float(lat2)])
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
 
     # haversine formula
     dlon = lon2 - lon1

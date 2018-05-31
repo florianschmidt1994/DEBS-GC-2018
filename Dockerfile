@@ -1,7 +1,7 @@
 FROM korekontrol/ubuntu-java-python3 
 RUN pip3 install --upgrade pip
-RUN pip3 install pika numpy 
-RUN pip3 install --no-build-isolation scipy pandas bitstring 'scikit-learn==0.18.1'
+RUN pip3 install pika numpy haversine tensorflow h5py 
+RUN pip3 install --no-build-isolation scipy pandas bitstring 'scikit-learn==0.19.1'
 RUN pip3 install --no-build-isolation flask
 RUN mkdir -p /usr/src/debs2018solution 
 WORKDIR /usr/src/debs2018solution 

@@ -21,8 +21,8 @@ public class SampleDockersBuilder extends DynamicDockerFileBuilder {
         String dockerfile = "" +
             "FROM korekontrol/ubuntu-java-python3 \n" +
             "RUN pip3 install --upgrade pip \n" +
-            "RUN pip3 install pika numpy \n" +
-            "RUN pip3 install --no-build-isolation scipy pandas bitstring 'scikit-learn==0.18.1' \n" +
+            "RUN pip3 install pika numpy haversine tensorflow h5py\n" +
+            "RUN pip3 install --no-build-isolation scipy pandas bitstring 'scikit-learn==0.19.1' \n" +
             "RUN pip3 install --no-build-isolation flask \n" +
             "RUN mkdir -p /usr/src/debs2018solution \n" +
             "WORKDIR /usr/src/debs2018solution \n" +

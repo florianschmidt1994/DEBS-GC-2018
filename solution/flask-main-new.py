@@ -30,7 +30,7 @@ scaler = joblib.load(filename3)
 time_predictor = load_model(filename4) 
 
 # create predictor and system adapter
-predictor = Predictor(port_predictor, time_predictor, scaler)
+predictor = Predictor(port_predictor, time_predictor, scaler, clusters)
 
 @app.route("/", methods=['GET'])
 def index():

@@ -4,7 +4,6 @@ import datetime
 import time
 import tensorflow as tf
 from math import radians, cos, sin, asin, sqrt
-from haversine import haversine
 
 ports = {'ALEXANDRIA': 0,
  'AUGUSTA': 1,
@@ -25,7 +24,7 @@ ports = {'ALEXANDRIA': 0,
  'IBIZA': 16,
  'ISKENDERUN': 17,
  'LAPSEKI': 18,
- 'LIVORNO': '19',
+ 'LIVORNO': 19,
  'LIMASSOL': 20,
  'MARSAXLOKK': 21,
  'MONACO': 22,
@@ -98,7 +97,6 @@ coordinates = {
 }
 
 
-
 SHIP_ID = 0  # 0xc35c9ebbf48cbb5857a868ce441824d0b2ff783a
 SHIPTYPE = 1  # 99
 SPEED = 2  # 8.2
@@ -115,55 +113,84 @@ ARRIVAL_PORT_CALC = 11  # ??
 
 
 class Predictor:
-    def __init__(self, port_model, time_model, scaler):
+    def __init__(self, port_model, time_model, scaler, clusters):
         self.port_model = port_model
         self.time_model = time_model
         self.graph = tf.get_default_graph()
         self.ports = ports
         self.scaler = scaler
+        self.clusters = clusters
 
     def predict_port_and_time(self, data):
         # Parse string to array and convert all fields to numbers
 
         #coordinates = get_coordinates() #Preloading coordinates for each port
 
-        #print("IN: %s" % data)
         feed_list = parse(data)
-        initial_time = feed_list[6]  # we need this below. TODO: Fix this ugly entanglement
 
-        port_features = feed_list[:6]+feed_list[7:]
-        port_features = np.array(port_features)
+        port_features = np.zeros(shape=(8,1))
+        port_features[0] = feed_list[0]
+        port_features[1] = feed_list[1]
+        port_features[2] = feed_list[2]
+        port_features[3] = feed_list[3]
+        port_features[4] = feed_list[4]
+        port_features[5] = feed_list[5]
+        port_features[6] = feed_list[6]
+        port_features[7] = feed_list[8]
+        #print(port_features)
 
         # Predict destination port
-        port = self.port_model.predict(port_features.reshape(-1, 8))
+        port = port_predictor.predict(port_features.reshape(-1, 8))
         port = port[0]
         #output for Q1
+        #print(port)
+        destination_coordinates = coordinates.get(port)
+        #print(destination_coordinates)
+
+        port_features = np.zeros(shape=(9,1))
+        port_features[0] = feed_list[0]
+        port_features[1] = feed_list[1]
+        port_features[2] = feed_list[2]
+        port_features[3] = feed_list[3]
+        port_features[4] = feed_list[4]
+        port_features[5] = feed_list[5]
+        port_features[6] = feed_list[6]
+        port_features[7] = feed_list[7]
+        port_features[8] = feed_list[8]
+        #print(port_features)
+
+        feed_tuple = np.append(port_features, port)
+        feed_tuple = np.append(feed_tuple, destination_coordinates)
+        #print((feed_tuple[1]), feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
+        distance = haversine((feed_tuple[1]), feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
+
+
+        #Checking the cluster
+        if distance <= 18:
+                port1 = clusters.predict(feed_tuple[2:4].reshape(1, -1))
+                port = port1[0]
+                #print('new port is ', port)
+                feed_tuple[-3] = port
         destination_port = int_to_port(port)
 
-        ''' Order of features should be
-        [ 'SHIPTYPE', 'SPEED', 'LON_x', 'LAT_x', 'COURSE', 'HEADING',
-        'DEPARTURE_PORT_NAME', 'REPORTED_DRAUGHT',
-        'ARRIVAL_PORT_CALC',  'LON_y', 'LAT_y', 'DISTANCE']
-        '''
-
-        # Select our input features for time prediction and append the predicted destination port to them
-        feed_tuple = np.append(feed_list, port)
-        feed_tuple = np.append(feed_tuple, coordinates.get(port))
-        feed_tuple = feed_tuple.astype(np.float)
-        distance = haversine(feed_tuple[1], feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
+        #print(feed_tuple.shape)
         feed_tuple = np.append(feed_tuple, distance)
+        #print(distance)
         # Predict the ETA
         feed_tuple = [0 if v == 'nan' else v  for v in feed_tuple]
         with self.graph.as_default():
-            time_left = self.time_model.predict(self.scaler.transform(np.asarray(feed_tuple).reshape(1, -1)))
+            time_left = self.time_model.predict(self.caler.transform(np.asarray(feed_tuple).reshape(1, -1)))
 
-        eta = initial_time + time_left
-        #print("OUT: %s %s" % (destination_port,from_unixtime(eta)))
+        #print(port_features[6])
+        eta = port_features[6] + time_left
+
         return destination_port, from_unixtime(eta)
-        
+
 
 def parse(input_str):
+
     data = input_str.replace("\'","").split(",")
+    #data = [0 if v is (None or '') else v for v in data]
     data = [0 if v == 'nan' else v  for v in data]
     parsed_data = [
         data[SHIPTYPE],
@@ -177,26 +204,6 @@ def parse(input_str):
         data[REPORTED_DRAUGHT]
     ]
     return [0 if elem is '' else elem for elem in parsed_data]
-
-def predictQ2(parsed_tuple, port):
-    '''
-    [ 'SHIPTYPE', 'SPEED', 'LON_x', 'LAT_x', 'COURSE', 'HEADING',
-        'DEPARTURE_PORT_NAME', 'REPORTED_DRAUGHT',
-        'ARRIVAL_PORT_CALC',  'LON_y', 'LAT_y', 'DISTANCE'
-        ]
-    '''
-    parsed_tuple = np.append(parsed_tuple,port)
-    parsed_tuple = np.append(parsed_tuple,coordinates.get(port))
-    #np.append(feed_tuple,coordinates.get(port[0]))
-    #check assert
-
-    time_left = time_predictor.predict(parsed_tuple.reshape(-1, 12))
-    #pd.to_datetime(data[-3]) + datetime.timedelta(minutes=time_left[0])
-
-    timestamp = to_unixtime(data[-3])
-    eta = timestamp + time_left
-    port = unparse(port)
-    return port, from_unixtime(eta)
 
 
 def port_to_int(port_name):
@@ -222,6 +229,26 @@ def to_unixtime(value):
 def from_unixtime(time):
     return datetime.datetime.fromtimestamp(time).strftime('%d-%m-%Y %H:%M')
 
+def haversine_np(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+
+    All args must be of equal length.
+
+    """
+    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = np.sin(dlat/2.0)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2.0)**2
+
+    c = 2 * np.arcsin(np.sqrt(a))
+    km = 6367 * c
+    return km
+
+
 def haversine(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points
@@ -237,4 +264,3 @@ def haversine(lon1, lat1, lon2, lat2):
     c = 2 * asin(sqrt(a))
     r = 6371 # Radius of earth in kilometers. Use 3956 for miles
     return c * r
-

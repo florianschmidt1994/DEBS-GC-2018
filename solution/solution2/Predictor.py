@@ -154,8 +154,8 @@ class Predictor:
         feed_tuple = np.append(feed_tuple, distance)
         # Predict the ETA
         feed_tuple = [0 if v == 'nan' else v  for v in feed_tuple]
-        with graph.as_default():
-            time_left = self.time_model.predict(scaler.transform(np.asarray(feed_tuple).reshape(1, -1)))
+        with self.graph.as_default():
+            time_left = self.time_model.predict(self.scaler.transform(np.asarray(feed_tuple).reshape(1, -1)))
 
         eta = initial_time + time_left
         #print("OUT: %s %s" % (destination_port,from_unixtime(eta)))

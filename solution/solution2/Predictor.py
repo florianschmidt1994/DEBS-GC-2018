@@ -179,7 +179,7 @@ class Predictor:
         # Predict the ETA
         feed_tuple = [0 if v == 'nan' else v  for v in feed_tuple]
         with self.graph.as_default():
-            time_left = self.time_model.predict(self.caler.transform(np.asarray(feed_tuple).reshape(1, -1)))
+            time_left = self.time_model.predict(self.scaler.transform(np.asarray(feed_tuple).reshape(1, -1)))
 
         #print(port_features[6])
         eta = port_features[6] + time_left

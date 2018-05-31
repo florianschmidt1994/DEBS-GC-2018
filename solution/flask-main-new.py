@@ -10,6 +10,8 @@ from tensorflow.python.keras.models import load_model
 from solution2.Predictor import Predictor
 import sys
 import logging
+import warnings
+
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
@@ -48,4 +50,5 @@ def predict_port_and_time():
     return "%s, %s" % (port, time)
 
 port = int(sys.argv[1])
+warnings.filterwarnings(action='ignore', category=DeprecationWarning)
 app.run(host='0.0.0.0',port=port)

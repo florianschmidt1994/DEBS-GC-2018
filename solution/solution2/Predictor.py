@@ -52,49 +52,49 @@ ports = {'ALEXANDRIA': 0,
 
 
 coordinates = {
- 0: np.array([ 29.88,  31.18]),
- 1: np.array([ 15.21,  37.2 ]),
- 2: np.array([  2.16,  41.35]),
- 3: np.array([  9.11,  39.21]),
- 4: np.array([ -0.97,  37.58]),
- 5: np.array([  2.00000000e-02,   3.99700000e+01]),
- 6: np.array([ -5.31,  35.89]),
- 7: np.array([ 31.76,  31.47]),
- 8: np.array([ 29.53,  40.77]),
- 9: np.array([  4.87,  43.42]),
- 10: np.array([ 13.61,  41.26]),
- 11: np.array([ 29.12,  40.43]),
- 12: np.array([  8.91,  44.4 ]),
- 13: np.array([ -5.36,  36.14]),
- 14: np.array([  5.78,  36.82]),
- 15: np.array([ 35.  ,  32.83]),
- 16: np.array([  1.44,  38.91]),
- 17: np.array([ 36.18,  36.68]),
- 18: np.array([ 26.69,  40.35]),
- 19: np.array([ 10.31,  43.56]),
- 20: np.array([ 33.03,  34.66]),
- 21: np.array([ 14.54,  35.83]),
- 22: np.array([  7.43,  43.74]),
- 23: np.array([ 26.9 ,  38.77]),
- 24: np.array([ 13.37,  38.13]),
- 25: np.array([  2.63,  39.56]),
- 26: np.array([ 23.61,  37.95]),
- 27: np.array([ 10.55,  42.93]),
- 28: np.array([ 17.44,  43.04]),
- 29: np.array([ 32.32,  31.24]),
- 30: np.array([  1.3 ,  38.98]),
- 31: np.array([ 15.9 ,  38.45]),
- 32: np.array([  6.92,  36.89]),
- 33: np.array([ -0.63,  35.75]),
- 34: np.array([  1.22,  41.1 ]),
- 35: np.array([ 34.77,  32.09]),
- 36: np.array([ 23.98,  32.07]),
- 37: np.array([ 12.51,  38.01]),
- 38: np.array([ 13.18,  32.9 ]),
- 39: np.array([ 29.29,  40.83]),
- 40: np.array([ -0.32,  39.44]),
- 41: np.array([ 14.52,  35.89]),
- 42: np.array([ 29.48,  40.72])
+ 0: np.array([29.88,31.18]),
+ 1: np.array([15.21,37.2]),
+ 2: np.array([2.16,41.35]),
+ 3: np.array([9.11,39.21]),
+ 4: np.array([-0.97,37.58]),
+ 5: np.array([0.02,39.96]),
+ 6: np.array([-5.31,35.89]),
+ 7: np.array([31.76,31.47]),
+ 8: np.array([29.53,40.77]),
+ 9: np.array([4.87,43.42]),
+ 10: np.array([13.61,41.26]),
+ 11: np.array([29.12,40.43]),
+ 12: np.array([8.91,44.4]),
+ 13: np.array([-5.36,36.14]),
+ 14: np.array([5.78,36.82]),
+ 15: np.array([35.00,32.83]),
+ 16: np.array([1.44,38.91]),
+ 17: np.array([36.18,36.68]),
+ 18: np.array([26.69,40.35]),
+ 19: np.array([10.31,43.56]),
+ 20: np.array([33.03,34.66]),
+ 21: np.array([14.54,35.83]),
+ 22: np.array([7.43,43.74]),
+ 23: np.array([26.91,38.77]),
+ 24: np.array([13.37,38.13]),
+ 25: np.array([2.63,39.56]),
+ 26: np.array([23.61,37.95]),
+ 27: np.array([10.55,42.93]),
+ 28: np.array([17.44,43.04]),
+ 29: np.array([32.32,31.24]),
+ 30: np.array([1.3,38.98]),
+ 31: np.array([15.9,38.45]),
+ 32: np.array([6.92,36.89]),
+ 33: np.array([-0.63,35.75]),
+ 34: np.array([1.22,41.11]),
+ 35: np.array([34.77,32.09]),
+ 36: np.array([23.98,32.07]),
+ 37: np.array([12.51,38.01]),
+ 38: np.array([13.18,32.91]),
+ 39: np.array([29.29,40.83]),
+ 40: np.array([-0.32,39.44]),
+ 41: np.array([14.52,35.89]),
+ 42: np.array([29.48,40.72])
 }
 
 
@@ -132,7 +132,7 @@ class Predictor:
         initial_time = feed_list[6]  # we need this below. TODO: Fix this ugly entanglement
 
         port_features = feed_list[:6]+feed_list[7:]
-        port_features = np.asarray(port_features)
+        port_features = np.array(port_features)
 
         # Predict destination port
         port = self.port_model.predict(port_features.reshape(-1, 8))
@@ -149,12 +149,13 @@ class Predictor:
         # Select our input features for time prediction and append the predicted destination port to them
         feed_tuple = np.append(feed_list, port)
         feed_tuple = np.append(feed_tuple, coordinates.get(port))
-        feed_tuple = np.asarray(feed_tuple).astype(np.float)
-        distance = haversine((feed_tuple[1], feed_tuple[2]), (feed_tuple[-2], feed_tuple[-1]))
+        feed_tuple = feed_tuple.astype(np.float)
+        distance = haversine(feed_tuple[1], feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
         feed_tuple = np.append(feed_tuple, distance)
         # Predict the ETA
-        with self.graph.as_default():
-             time_left = self.time_model.predict(self.scaler.transform(feed_tuple.reshape(1, -1)))
+        feed_tuple = [0 if v == 'nan' else v  for v in feed_tuple]
+        with graph.as_default():
+            time_left = self.time_model.predict(scaler.transform(np.asarray(feed_tuple).reshape(1, -1)))
 
         eta = initial_time + time_left
         #print("OUT: %s %s" % (destination_port,from_unixtime(eta)))
@@ -163,6 +164,7 @@ class Predictor:
 
 def parse(input_str):
     data = input_str.replace("\'","").split(",")
+    data = [0 if v == 'nan' else v  for v in data]
     parsed_data = [
         data[SHIPTYPE],
         data[SPEED],
@@ -220,21 +222,19 @@ def to_unixtime(value):
 def from_unixtime(time):
     return datetime.datetime.fromtimestamp(time).strftime('%d-%m-%Y %H:%M')
 
-def haversine_np(lon1, lat1, lon2, lat2):
+def haversine(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
-
-    All args must be of equal length.
-
     """
-    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
+    # convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
 
+    # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    r = 6371 # Radius of earth in kilometers. Use 3956 for miles
+    return c * r
 
-    a = np.sin(dlat/2.0)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2.0)**2
-
-    c = 2 * np.arcsin(np.sqrt(a))
-    km = 6367 * c
-    return km

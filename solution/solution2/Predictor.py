@@ -3,6 +3,8 @@ import pandas as pd
 import datetime
 import time
 import tensorflow as tf
+from math import radians, cos, sin, asin, sqrt
+from haversine import haversine
 
 ports = {'ALEXANDRIA': 0,
  'AUGUSTA': 1,
@@ -125,6 +127,7 @@ class Predictor:
 
         #coordinates = get_coordinates() #Preloading coordinates for each port
 
+        #print("IN: %s" % data)
         feed_list = parse(data)
         initial_time = feed_list[6]  # we need this below. TODO: Fix this ugly entanglement
 
@@ -146,17 +149,17 @@ class Predictor:
         # Select our input features for time prediction and append the predicted destination port to them
         feed_tuple = np.append(feed_list, port)
         feed_tuple = np.append(feed_tuple, coordinates.get(port))
-        feed_tuple = np.asarray([round(float(i),2) if '.' in i else int(i) for i in feed_tuple])
-        distance = haversine_np(feed_tuple[1], feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
+        feed_tuple = np.asarray(feed_tuple).astype(np.float)
+        distance = haversine((feed_tuple[1], feed_tuple[2]), (feed_tuple[-2], feed_tuple[-1]))
         feed_tuple = np.append(feed_tuple, distance)
-
         # Predict the ETA
         with self.graph.as_default():
-             time_left = self.time_model.predict(np.array(self.scaler.transform(feed_tuple.reshape(1, -1))))        
-        #eta = initial_time + time_left
+             time_left = self.time_model.predict(self.scaler.transform(feed_tuple.reshape(1, -1)))
 
-        return destination_port, feed_tuple, time_left#from_unixtime(eta)
-
+        eta = initial_time + time_left
+        #print("OUT: %s %s" % (destination_port,from_unixtime(eta)))
+        return destination_port, from_unixtime(eta)
+        
 
 def parse(input_str):
     data = input_str.replace("\'","").split(",")

@@ -140,7 +140,7 @@ class Predictor:
         #print(port_features)
 
         # Predict destination port
-        port = port_predictor.predict(port_features.reshape(-1, 8))
+        port = port_model.predict(port_features.reshape(-1, 8))
         port = port[0]
         #output for Q1
         #print(port)

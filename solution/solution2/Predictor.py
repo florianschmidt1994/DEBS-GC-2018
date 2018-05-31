@@ -162,7 +162,7 @@ class Predictor:
         feed_tuple = np.append(port_features, port)
         feed_tuple = np.append(feed_tuple, destination_coordinates)
         #print((feed_tuple[1]), feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
-        distance = haversine(feed_tuple[1], feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
+        distance = haversine_np(feed_tuple[1], feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
 
 
         #Checking the cluster

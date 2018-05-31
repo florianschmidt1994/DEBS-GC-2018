@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 port_path = os.path.join(current_dir, "datasets/ports_extended.csv")
-filename1 = os.path.join(current_dir, "new_models/destination_ensemble.pkl")
+filename1 = os.path.join(current_dir, "new_models/random_forest300.pkl")
 filename2 = os.path.join(current_dir, "new_models/clusters.pkl")
 filename3 = os.path.join(current_dir, "new_models/scaler.pkl")
 filename4 = os.path.join(current_dir, "new_models/eta_mlp.h5")
@@ -27,7 +27,7 @@ filename4 = os.path.join(current_dir, "new_models/eta_mlp.h5")
 port_predictor = joblib.load(filename1)
 clusters = joblib.load(filename2)
 scaler = joblib.load(filename3)
-time_predictor = load_model(filename4) 
+time_predictor = load_model(filename4)
 
 # create predictor and system adapter
 predictor = Predictor(port_predictor, time_predictor, scaler, clusters)

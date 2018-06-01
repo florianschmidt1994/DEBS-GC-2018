@@ -116,7 +116,7 @@ class Predictor:
     def __init__(self, port_model, time_model, scaler, clusters):
         self.port_model = port_model
         self.time_model = time_model
-        self.graph = tf.get_default_graph()
+        #self.graph = tf.get_default_graph()
         self.ports = ports
         self.scaler = scaler
         self.clusters = clusters
@@ -140,7 +140,7 @@ class Predictor:
         #print(port_features)
 
         # Predict destination port
-        port = self.port_model.predict(port_features.reshape(-1, 8))
+        port = port_predictor.predict(port_features.reshape(-1, 8))
         port = port[0]
         #output for Q1
         #print(port)
@@ -162,7 +162,7 @@ class Predictor:
         feed_tuple = np.append(port_features, port)
         feed_tuple = np.append(feed_tuple, destination_coordinates)
         #print((feed_tuple[1]), feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
-        distance = haversine_np(feed_tuple[1], feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
+        distance = haversine_np((feed_tuple[1]), feed_tuple[2], feed_tuple[-2], feed_tuple[-1])
 
 
         #Checking the cluster
@@ -178,8 +178,8 @@ class Predictor:
         #print(distance)
         # Predict the ETA
         feed_tuple = [0 if v == 'nan' else v  for v in feed_tuple]
-        with self.graph.as_default():
-            time_left = self.time_model.predict(self.scaler.transform(np.asarray(feed_tuple).reshape(1, -1)))
+        #with graph.as_default():
+        time_left = self.time_model.predict(scaler.transform(np.asarray(feed_tuple).reshape(1, -1)))
 
         #print(port_features[6])
         eta = port_features[6] + time_left

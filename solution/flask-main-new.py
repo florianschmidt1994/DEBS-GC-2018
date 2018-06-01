@@ -27,7 +27,11 @@ filename4 = os.path.join(current_dir, "new_models/eta_mlp.h5")
 port_predictor = joblib.load(filename1)
 clusters = joblib.load(filename2)
 scaler = joblib.load(filename3)
-time_predictor = load_model(filename4)
+time_predictor = tf.keras.models.load_model(
+    filename4,
+    custom_objects=None,
+    compile=True
+)
 
 # create predictor and system adapter
 predictor = Predictor(port_predictor, time_predictor, scaler, clusters)
